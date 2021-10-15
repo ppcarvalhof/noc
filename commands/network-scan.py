@@ -311,7 +311,7 @@ class Command(BaseCommand):
         asyncio.run(snmp_task())
         print("enable_snmp ", len(self.enable_snmp))
 
-        data = "IP;Доступен по ICMP;IP есть;is_managed;SMNP sysname;SNMP sysObjectId;Vendor;Model;Имя;pool;tags\n"
+        data = "IP;Доступен по ICMP;IP есть;is_managed;SMNP sysname;SNMP sysObjectId;Vendor;Model;Имя;pool;labels\n"
         # столбцы x1,x2,x3,x4,x5,x6,x7,x8,x9,x10,x11,x12
         for ipx in self.enable_ping:
             x2 = "Да"
