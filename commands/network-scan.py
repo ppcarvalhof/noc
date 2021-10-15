@@ -240,6 +240,10 @@ class Command(BaseCommand):
             self.version = [1, 0]
         else:
             self.version = [version]
+        try:
+            self.pool = Pool.objects.get(name=pool)
+        except Pool.DoesNotExist:
+            self.die("Invalid pool-%s" % (pool))
         # snmp community
         if not community:
             community = []
@@ -252,18 +256,16 @@ class Command(BaseCommand):
                 except AuthProfile.DoesNotExist:
                     self.die("Invalid authprofile-%s" % (auth))
             elif pool:
+                auth = f"TG.{pool}"
                 try:
-                    self.pool = Pool.objects.get(name=pool)
-                    auth = "TG." + pool
                     self.auth = AuthProfile.objects.get(name=auth)
                     if self.auth.enable_suggest:
                         for ro, rw in self.auth.iter_snmp():
                             community.append(ro)
-                except Pool.DoesNotExist:
-                    self.die("Invalid pool-%s" % (pool))
+                except AuthProfile.DoesNotExist:
+                    self.die("Invalid authprofile-%s" % (auth))
             else:
                 community = [self.DEFAULT_COMMUNITY]
-                auth = "default"
 
         # auto add objects profile
         if autoadd:
@@ -309,7 +311,7 @@ class Command(BaseCommand):
         asyncio.run(snmp_task())
         print("enable_snmp ", len(self.enable_snmp))
 
-        data = "IP;Доступен по ICMP;IP есть;is_managed;SMNP sysname;SNMP sysObjectId;Vendor;Model;Имя;pool;labels\n"
+        data = "IP;Доступен по ICMP;IP есть;is_managed;SMNP sysname;SNMP sysObjectId;Vendor;Model;Имя;pool;tags\n"
         # столбцы x1,x2,x3,x4,x5,x6,x7,x8,x9,x10,x11,x12
         for ipx in self.enable_ping:
             x2 = "Да"
