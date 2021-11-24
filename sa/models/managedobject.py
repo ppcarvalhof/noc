@@ -1960,7 +1960,9 @@ class ManagedObject(NOCModel):
             yield list(VCDomain.iter_lazy_labels(instance.vc_domain))
         if instance.tt_system:
             yield list(TTSystem.iter_lazy_labels(instance.tt_system))
-        if Interface.objects.filter(managed_object=instance.id, effective_labels="noc::is_linked::=").first():
+        if Interface.objects.filter(
+            managed_object=instance.id, effective_labels="noc::is_linked::="
+        ).first():
             # If use Link.objects.filter(linked_objects=mo.id).first() - 1.27 ms,
             # Interface = 39.4 µs
             yield ["noc::is_linked::="]

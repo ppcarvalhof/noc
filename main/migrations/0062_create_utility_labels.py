@@ -13,7 +13,6 @@ from noc.core.migration.base import BaseMigration
 
 
 class Migration(BaseMigration):
-
     def migrate(self):
         # Create wildcard labels
         l_coll = self.mongo_db["labels"]
