@@ -250,8 +250,6 @@ class Link(Document):
         return "u"
 
     def reset_label(self):
-        from noc.inv.models.interface import Interface
-        from noc.sa.models.managedobject import ManagedObject
         from noc.main.models.label import Label
 
         coll = Link._get_collection()
