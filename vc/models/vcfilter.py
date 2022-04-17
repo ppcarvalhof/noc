@@ -19,7 +19,8 @@ import cachetools
 # NOC modules
 from noc.core.model.base import NOCModel
 from noc.core.model.decorator import on_delete_check
-from noc.main.models.label import Label
+
+# from noc.main.models.label import Label
 from noc.core.text import ranges_to_list
 
 rx_vc_filter = re.compile(r"^\s*\d+\s*(-\d+\s*)?(,\s*\d+\s*(-\d+)?)*$")
@@ -29,7 +30,7 @@ match_lock = Lock()
 MATCHED_SCOPES = {"untagged", "tagged"}
 
 
-@Label.match_labels(category="vcfilter")
+# @Label.match_labels(category="vcfilter")
 @on_delete_check(
     check=[("vc.VCBindFilter", "vc_filter"), ("vc.VCDomainProvisioningConfig", "vc_filter")],
     clean_lazy_labels="vcfilter",

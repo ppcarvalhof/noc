@@ -12,7 +12,9 @@ Ext.define("NOC.main.label.Application", {
         "NOC.main.label.Model",
         "NOC.main.remotesystem.LookupField",
         "Ext.ux.form.ColorField",
-        "Ext.ux.form.GridField"
+        "Ext.ux.form.GridField",
+        "NOC.main.prefixtable.LookupField",
+        "NOC.vc.vlanfilter.LookupField",
     ],
     model: "NOC.main.label.Model",
     search: true,
@@ -334,6 +336,116 @@ Ext.define("NOC.main.label.Application", {
                                 "interface_name": __("Interface Name"),
                                 "interface_description": __("Interface Description"),
                                 "sensor_local_id": __("Sensor Local ID")
+                            })
+                        },
+                    ]
+                },
+                {
+                    name: "match_prefixfilter",
+                    xtype: "gridfield",
+                    fieldLabel: __("Prefix Label"),
+                    bind: {
+                        disabled: "{!is_regex}"
+                    },
+                    columns: [
+                        {
+                            text: __("Prefix"),
+                            dataIndex: "prefix_table",
+                            editor: {
+                                xtype: "main.prefixtable.LookupField",
+                                allowBlank: false
+                            },
+                            renderer: NOC.render.Lookup("prefix_table"),
+                            width: 250
+                        },
+                        {
+                            text: __("Condition"),
+                            dataIndex: "condition",
+                            width: 200,
+                            allowBlank: false,
+                            editor: {
+                                xtype: "combobox",
+                                defaultValue: "any",
+                                store: [
+                                    ["all", __("ALL")],
+                                    ["any", __("ANY")]
+                                ]
+                            },
+                            renderer: NOC.render.Choices({
+                                "all": __("ALL"),
+                                "any": __("ANY")
+                            })
+                        },
+                        {
+                            text: __("Prefix Scope"),
+                            dataIndex: "scope",
+                            width: 200,
+                            allowBlank: false,
+                            editor: {
+                                xtype: "combobox",
+                                store: [
+                                    ["managedobject_address", __("Managed Object Address")],
+                                    ["subinterface_ipv4_addresses", __("SubInterface IP Address")]
+                                ]
+                            },
+                            renderer: NOC.render.Choices({
+                                "managedobject_address": __("Managed Object Address"),
+                                "subinterface_ipv4_addresses": __("SubInterface IP Address")
+                            })
+                        },
+                    ]
+                },
+                {
+                    name: "match_vlanfilter",
+                    xtype: "gridfield",
+                    fieldLabel: __("VLAN Label"),
+                    bind: {
+                        disabled: "{!is_regex}"
+                    },
+                    columns: [
+                        {
+                            text: __("VLAN Filter"),
+                            dataIndex: "vlan_filter",
+                            width: 200,
+                            allowBlank: false,
+                            editor: {
+                                xtype: "vc.vlanfilter.LookupField"
+                            },
+                            renderer: NOC.render.Lookup("vlan_filter")
+                        },
+                        {
+                            text: __("Condition"),
+                            dataIndex: "condition",
+                            width: 200,
+                            allowBlank: false,
+                            editor: {
+                                xtype: "combobox",
+                                defaultValue: "any",
+                                store: [
+                                    ["all", __("ALL")],
+                                    ["any", __("ANY")]
+                                ]
+                            },
+                            renderer: NOC.render.Choices({
+                                "all": __("ALL"),
+                                "any": __("ANY")
+                            })
+                        },
+                        {
+                            text: __("Prefix Scope"),
+                            dataIndex: "scope",
+                            width: 200,
+                            allowBlank: false,
+                            editor: {
+                                xtype: "combobox",
+                                store: [
+                                    ["subinterface_tagged_vlans", __("SubInterface Tagged VLANs")],
+                                    ["subinterface_untagged_vlan", __("SubInterface Untagged VLAN")]
+                                ]
+                            },
+                            renderer: NOC.render.Choices({
+                                "subinterface_tagged_vlans": __("SubInterface Tagged VLANs"),
+                                "subinterface_untagged_vlan": __("SubInterface Untagged VLAN")
                             })
                         },
                     ]

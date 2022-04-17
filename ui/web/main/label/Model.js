@@ -287,5 +287,13 @@ Ext.define("NOC.main.label.Model", {
             name: "match_regex",
             type: "auto"
         },
+        {
+            name: "match_vlanfilter",
+            type: "auto"
+        },
+        {
+            name: "match_prefixfilter",
+            type: "auto"
+        },
     ]
 });

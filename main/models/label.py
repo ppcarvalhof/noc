@@ -31,10 +31,13 @@ import orjson
 
 # NOC modules
 from noc.core.model.decorator import on_save, on_delete
+from noc.core.mongo.fields import ForeignKeyField
 from noc.core.change.decorator import change
 from noc.main.models.handler import Handler
 from noc.main.models.remotesystem import RemoteSystem
 from noc.models import get_model, is_document, LABEL_MODELS
+from noc.vc.models.vcfilter import VCFilter
+from noc.main.models.prefixtable import PrefixTable
 
 
 MATCH_OPS = {"=", "<", ">", "&"}
@@ -46,13 +49,23 @@ MATCH_BADGES = {
     "&": "&",
 }
 
-REGEX_LABELS_SCOPES = {
+REGEX_LABEL_SCOPES = {
     "managedobject_name": ("sa.ManagedObject", "name"),
     "managedobject_address": ("sa.ManagedObject", "address"),
     "managedobject_description": ("sa.ManagedObject", "description"),
     "interface_name": ("inv.Interface", "name"),
     "interface_description": ("inv.Interface", "description"),
     "sensor_local_id": ("inv.Sensor", "local_id"),
+}
+
+VLANFILTER_LABEL_SCOPES = {
+    "subinterface_tagged_vlans": ("inv.SubInterface", "tagged_vlans"),
+    "subinterface_untagged_vlan": ("inv.SubInterface", "untagged_vlan"),
+}
+
+PREFIXFILTER_LABEL_SCOPES = {
+    "managedobject_address": ("sa.ManagedObject", "address"),
+    "subinterface_ipv4_addresses": ("inv.SubInterface", "ipv4_addresses"),
 }
 
 id_lock = Lock()
@@ -70,10 +83,22 @@ class RegexItem(EmbeddedDocument):
     flag_multiline = BooleanField(default=False)
     # Set DotAll flag
     flag_dotall = BooleanField(default=False)
-    scope = StringField(choices=list(REGEX_LABELS_SCOPES), required=True)
+    scope = StringField(choices=list(REGEX_LABEL_SCOPES), required=True)
 
     def __str__(self):
         return f'{self.scope}: {self.regexp}, {"MULTI" if self.flag_multiline else ""}|{"DOTALL" if self.flag_dotall else ""}'
+
+
+class VLANFilterItem(EmbeddedDocument):
+    vlan_filter = ForeignKeyField(VCFilter)
+    condition = StringField(choices=["all", "any"])
+    scope = StringField(choices=list(VLANFILTER_LABEL_SCOPES), required=True)
+
+
+class PrefixFilterItem(EmbeddedDocument):
+    prefix_table = ForeignKeyField(PrefixTable)
+    condition = StringField(choices=["all", "any"])
+    scope = StringField(choices=list(PREFIXFILTER_LABEL_SCOPES), required=True)
 
 
 @on_save
@@ -169,8 +194,14 @@ class Label(Document):
     expose_metric = BooleanField(default=False)
     expose_datastream = BooleanField(default=False)
     expose_alarm = BooleanField(default=False)
+    # Match Condition
+    # match_condition = ALL,ANY
     # Regex
     match_regex = ListField(EmbeddedDocumentField(RegexItem))
+    # VLAN Filter
+    match_vlanfilter = ListField(EmbeddedDocumentField(VLANFilterItem))
+    # Prefix Filter
+    match_prefixfilter = ListField(EmbeddedDocumentField(PrefixFilterItem))
     # Integration with external NRI and TT systems
     # Reference to remote system object has been imported from
     remote_system = ReferenceField(RemoteSystem)
@@ -551,10 +582,10 @@ class Label(Document):
         """
         r = defaultdict(list)  # model, field -> Regex List
         for ri in self.match_regex:
-            if ri.scope not in REGEX_LABELS_SCOPES:
+            if ri.scope not in REGEX_LABEL_SCOPES:
                 # Unknown scope
                 continue
-            r[REGEX_LABELS_SCOPES[ri.scope]] += [ri.regexp]
+            r[REGEX_LABEL_SCOPES[ri.scope]] += [ri.regexp]
         return r
 
     def _refresh_regex_labels(self):
@@ -1076,6 +1107,32 @@ class Label(Document):
             if rx.match(value):
                 labels += [label]
         return labels
+
+    @classmethod
+    def get_effective_prefixfilter_labels(cls, scope: str, value: str) -> List[str]:
+        """
+
+        :param scope:
+        :param value:
+        :return:
+        """
+        labels = []
+        for pt, condition in PrefixTable.iter_match_prefix(value):
+            condition = "any" if condition != "=" else "all"
+            return list(
+                Label.objects.filter(
+                    enable_managed_object=True,
+                    __raw__={
+                        "match_prefixfilter": {
+                            "$elemMatch": {
+                                "scope": scope,
+                                "prefix_table": pt.id,
+                                "condition": condition,
+                            }
+                        }
+                    },
+                ).values("name")
+            )
 
     @classmethod
     @cachetools.cachedmethod(operator.attrgetter("_rx_labels_cache"), lock=lambda _: rx_labels_lock)
