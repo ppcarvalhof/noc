@@ -6,8 +6,7 @@
 # ---------------------------------------------------------------------
 
 # Third-party modules
-from noc.core.translation import ugettext as _
-from typing import Union, List, Tuple
+from typing import Union, List, Tuple, Iterable
 from django.db import models
 
 # NOC Modules
@@ -15,6 +14,7 @@ from noc.core.model.base import NOCModel
 from noc.core.ip import IP
 from noc.core.model.fields import CIDRField
 from noc.core.model.decorator import on_delete_check
+from noc.core.translation import ugettext as _
 
 
 @on_delete_check(
@@ -61,7 +61,9 @@ class PrefixTable(NOCModel):
         return self.match(other)
 
     @classmethod
-    def iter_match_prefix(cls, prefixes: Union[str, List[str]]) -> Tuple["PrefixTable", str]:
+    def iter_match_prefix(
+        cls, prefixes: Union[str, List[str]]
+    ) -> Iterable[Tuple["PrefixTable", str]]:
         if isinstance(prefixes, str):
             prefixes = [prefixes]
         pp = [IP.prefix(prefix) for prefix in prefixes]

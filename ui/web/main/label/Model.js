@@ -55,7 +55,7 @@ Ext.define("NOC.main.label.Model", {
             type: "boolean"
         },
         {
-            name: "is_regex",
+            name: "is_matching",
             type: "boolean"
         },
         {
