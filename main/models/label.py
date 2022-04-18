@@ -119,8 +119,16 @@ class Label(Document):
         "auto_create_index": False,
         "indexes": [
             ("is_matching", "match_regex.scope"),
-            ("match_vlanfilter.vlan_filter", "match_vlanfilter.condition", "match_vlanfilter.scope"),
-            ("match_prefixfilter.vlan_filter", "match_prefixfilter.condition", "match_prefixfilter.scope")
+            (
+                "match_vlanfilter.vlan_filter",
+                "match_vlanfilter.condition",
+                "match_vlanfilter.scope",
+            ),
+            (
+                "match_prefixfilter.vlan_filter",
+                "match_prefixfilter.condition",
+                "match_prefixfilter.scope",
+            ),
         ],
     }
 

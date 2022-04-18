@@ -35,7 +35,7 @@ MATCHED_SCOPES = {"untagged", "tagged"}
     check=[
         ("vc.VCBindFilter", "vc_filter"),
         ("vc.VCDomainProvisioningConfig", "vc_filter"),
-        ("main.Label", "match_vlanfilter.vlan_filter")
+        ("main.Label", "match_vlanfilter.vlan_filter"),
     ],
     clean_lazy_labels="vcfilter",
 )
