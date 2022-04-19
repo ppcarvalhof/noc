@@ -14,7 +14,7 @@ Ext.define("NOC.main.label.Application", {
         "Ext.ux.form.ColorField",
         "Ext.ux.form.GridField",
         "NOC.main.prefixtable.LookupField",
-        "NOC.vc.vcfilter.LookupField"
+        "NOC.vc.vlanfilter.LookupField"
     ],
     model: "NOC.main.label.Model",
     search: true,
@@ -408,10 +408,10 @@ Ext.define("NOC.main.label.Application", {
                             dataIndex: "vlan_filter",
                             width: 200,
                             editor: {
-                                xtype: "vc.vcfilter.LookupField",
+                                xtype: "vc.vlanfilter.LookupField",
                                 allowBlank: false
                             },
-                            renderer: NOC.render.Lookup("vc_filter"),
+                            renderer: NOC.render.Lookup("vlan_filter")
                         },
                         {
                             text: __("Condition"),

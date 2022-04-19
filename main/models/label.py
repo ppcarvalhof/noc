@@ -32,12 +32,12 @@ import orjson
 
 # NOC modules
 from noc.core.model.decorator import on_save, on_delete
-from noc.core.mongo.fields import ForeignKeyField
+from noc.core.mongo.fields import ForeignKeyField, PlainReferenceField
 from noc.core.change.decorator import change
 from noc.main.models.handler import Handler
 from noc.main.models.remotesystem import RemoteSystem
 from noc.models import get_model, is_document, LABEL_MODELS
-from noc.vc.models.vcfilter import VCFilter
+from noc.vc.models.vlanfilter import VLANFilter
 from noc.main.models.prefixtable import PrefixTable
 
 
@@ -91,7 +91,7 @@ class RegexItem(EmbeddedDocument):
 
 
 class VLANFilterItem(EmbeddedDocument):
-    vlan_filter = ForeignKeyField(VCFilter)
+    vlan_filter = PlainReferenceField(VLANFilter)
     condition = StringField(choices=["all", "any"])
     scope = StringField(choices=list(VLANFILTER_LABEL_SCOPES), required=True)
 
@@ -1153,7 +1153,7 @@ class Label(Document):
         :return:
         """
         mq = m_Q()
-        for pt, condition in VCFilter.iter_match_vcfilter(value):
+        for pt, condition in VLANFilter.iter_match_vlanfilter(value):
             condition = "any" if condition != "=" else "all"
             mq |= m_Q(
                 match_vlanfilter__match={

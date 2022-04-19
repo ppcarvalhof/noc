@@ -8,9 +8,8 @@
 # Python modules
 from threading import Lock
 import operator
-import logging
 import re
-from typing import Optional
+from typing import Optional, Union, List, Tuple
 
 # Third-party modules
 from mongoengine.document import Document
@@ -22,16 +21,13 @@ from mongoengine.fields import (
 import cachetools
 
 # NOC modules
-from noc.main.models.label import Label
 from noc.core.model.decorator import on_delete_check, on_save
 from noc.core.text import ranges_to_list
 
 rx_l2_filter = re.compile(r"^\s*\d+\s*(-\d+\s*)?(,\s*\d+\s*(-\d+)?)*$")
 id_lock = Lock()
-logger = logging.getLogger(__name__)
 
 
-@Label.match_labels(category="l2filter")
 @on_delete_check(
     check=[
         ("vc.L2Domain", "pool.vlan_filter"),
@@ -98,3 +94,28 @@ class VLANFilter(Document):
                 raise SyntaxError
             r += [(f, t)]
         return r
+
+    # @classmethod
+    # @cachetools.cachedmethod(operator.attrgetter("_match_cache"), lock=lambda _: match_lock)
+    # def get_matcher(cls) -> Dict[FrozenSet, List["VCFilter"]]:
+    #     r = defaultdict(list)
+    #     for vc in VLANFilter.objects.filter():
+    #         r[frozenset(ranges_to_list(vc.expression))] += [vc]
+    #     return r
+
+    @classmethod
+    def iter_match_vlanfilter(cls, vlan_list: Union[int, List[int]]) -> Tuple["VLANFilter", str]:
+        if isinstance(vlan_list, int):
+            vlan_list = [vlan_list]
+        match_expressions = cls.get_matcher()
+        vcs = set(vlan_list)
+        for expr, vcfilters in match_expressions.items():
+            r = vcs.intersection(expr)
+            if r and vcs == expr:
+                yield from iter((vc, "=") for vc in vcfilters)
+            if r and not vcs - expr:
+                yield from iter((vc, ">") for vc in vcfilters)
+            if r and not expr - vcs:
+                yield from iter((vc, "<") for vc in vcfilters)
+            if r:
+                yield from iter((vc, "&") for vc in vcfilters)

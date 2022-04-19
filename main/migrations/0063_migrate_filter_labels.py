@@ -13,6 +13,8 @@ from noc.core.migration.base import BaseMigration
 
 
 class Migration(BaseMigration):
+    depends_on = [("vc", "0030_migrate_vc_vlan_filter")]
+
     def migrate(self):
         # Prefix Filter Labels
         # Create wildcard labels
@@ -23,8 +25,8 @@ class Migration(BaseMigration):
         bulk = [
             InsertOne(
                 {
-                    "name": "vcfilter::*",
-                    "description": "Wildcard label for VCFilter match",
+                    "name": "vlanfilter::*",
+                    "description": "Wildcard label for VLANFilter match",
                     "bg_color1": 15844367,
                     "fg_color1": 16777215,
                     "bg_color2": 9323693,
@@ -44,10 +46,10 @@ class Migration(BaseMigration):
             for mr in ip.get("match_rules", []):
                 nl = []
                 for ll in mr["labels"]:
-                    if ll.startswith("noc::vcfilter::"):
+                    if ll.startswith("noc::vlanfilter::"):
                         _, _, vc_name, vc_scope, _ = ll.split("::", 4)
                         if vc_name in vc_domains:
-                            nl += [f"vcfilter::{vc_name}_{vc_scope}"]
+                            nl += [f"vlanfilter::{vc_name}_{vc_scope}"]
                             vc_domains_labels.add((vc_name, vc_scope))
                             continue
                     nl += [ll]
@@ -59,7 +61,7 @@ class Migration(BaseMigration):
             bulk += [
                 InsertOne(
                     {
-                        "name": f"vcfilter::{vc_name}_{vc_scope}",
+                        "name": f"vlanfilter::{vc_name}_{vc_scope}",
                         "bg_color1": 15844367,
                         "fg_color1": 16777215,
                         "bg_color2": 9323693,
