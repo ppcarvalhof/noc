@@ -2287,5 +2287,4 @@ from .objectnotification import ObjectNotification
 from .action import Action
 from noc.core.pm.utils import get_objects_metrics
 from noc.vc.models.vcdomain import VCDomain  # noqa
-from noc.main.models.prefixtable import PrefixTable
 from noc.ip.models.vrf import VRF
