@@ -407,11 +407,11 @@ Ext.define("NOC.main.label.Application", {
                             text: __("VLAN Filter"),
                             dataIndex: "vlan_filter",
                             width: 200,
-                            allowBlank: false,
                             editor: {
-                                xtype: "vc.vcfilter.LookupField"
+                                xtype: "vc.vcfilter.LookupField",
+                                allowBlank: false
                             },
-                            renderer: NOC.render.Lookup("vcfilter")
+                            renderer: NOC.render.Lookup("vc_filter"),
                         },
                         {
                             text: __("Condition"),

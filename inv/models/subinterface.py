@@ -156,19 +156,19 @@ class SubInterface(Document):
 
     @classmethod
     def can_set_label(cls, label):
-        return False
+        return Label.get_effective_setting(label, setting="enable_interface")
 
     @classmethod
     def iter_effective_labels(cls, instance: "SubInterface") -> Iterable[List[str]]:
         if instance.tagged_vlans:
-            lazy_tagged_vlans_labels = list(
-                VCFilter.iter_lazy_labels(instance.tagged_vlans, "tagged")
-            )
-            yield Label.ensure_labels(lazy_tagged_vlans_labels, enable_interface=True)
+            yield Label.get_effective_vlanfilter_labels(
+                    "subinterface_tagged_vlans", instance.tagged_vlans
+                )
         if instance.untagged_vlan:
-            lazy_untagged_vlans_labels = list(
-                VCFilter.iter_lazy_labels([instance.untagged_vlan], "untagged")
-            )
-            yield Label.ensure_labels(lazy_untagged_vlans_labels, enable_interface=True)
+            yield Label.get_effective_vlanfilter_labels(
+                    "subinterface_untagged_vlan", [instance.untagged_vlan]
+                )
         if instance.ipv4_addresses:
-            yield list(PrefixTable.iter_lazy_labels(instance.ipv4_addresses))
+            yield Label.get_effective_prefixfilter_labels(
+                    "subinterface_ipv4_addresses", instance.ipv4_addresses
+                )

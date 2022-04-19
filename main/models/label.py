@@ -9,7 +9,7 @@
 import logging
 import operator
 import re
-from typing import Optional, List, Set, Iterable, Dict, Any, Callable, Tuple
+from typing import Optional, List, Set, Iterable, Dict, Any, Callable, Tuple, Union
 from threading import Lock
 from collections import defaultdict
 from itertools import accumulate
@@ -1140,12 +1140,12 @@ class Label(Document):
                     "condition": {"$in": ["any", "all"]},
                 }
             )
-        if not m_Q:
+        if not mq:
             return []
         return list(Label.objects.filter(mq).values_list("name"))
 
     @classmethod
-    def get_effective_vlanfilter_labels(cls, scope: str, value: str) -> List[str]:
+    def get_effective_vlanfilter_labels(cls, scope: str, value: Union[int, List[int]]) -> List[str]:
         """
 
         :param scope:
@@ -1162,6 +1162,8 @@ class Label(Document):
                     "condition": condition,
                 }
             )
+        if not mq:
+            return []
         return list(Label.objects.filter(mq).values_list("name"))
 
     @classmethod
