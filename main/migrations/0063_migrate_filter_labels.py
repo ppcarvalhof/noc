@@ -58,6 +58,7 @@ class Migration(BaseMigration):
         prefix_table_labels = set()
         # VC Filter Labels
         ip_coll = self.mongo_db["noc.interface_profiles"]
+        ip_bulk = []
         for ip in ip_coll.find({"match_rules": {"$ne": []}}, {"match_rules": 1}):
             match_rules = []
             for mr in ip.get("match_rules", []):
@@ -82,7 +83,7 @@ class Migration(BaseMigration):
                 if changed:
                     match_rules += [{"dynamic_order": mr["dynamic_order"], "labels": nl}]
             if match_rules:
-                bulk += [UpdateOne({"_id": ip["_id"]}, {"$set": {"match_rules": match_rules}})]
+                ip_bulk += [UpdateOne({"_id": ip["_id"]}, {"$set": {"match_rules": match_rules}})]
         for vc_name, vc_scope in vc_domains_labels:
             bulk += [
                 InsertOne(
@@ -139,4 +140,6 @@ class Migration(BaseMigration):
             ]
         if bulk:
             l_coll.bulk_write(bulk, ordered=True)
+        if ip_bulk:
+            ip_coll.bulk_write(ip_bulk)
         l_coll.remove({"name": {"$regex": ".+vcfilter.+"}})
