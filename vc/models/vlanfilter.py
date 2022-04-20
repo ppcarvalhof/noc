@@ -110,7 +110,7 @@ class VLANFilter(Document):
                         if vlan_filter.exclude_expression
                         else set()
                     ),
-                ),
+                )
             ] += [vlan_filter]
         return r
 
