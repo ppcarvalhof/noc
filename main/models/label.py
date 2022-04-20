@@ -1153,12 +1153,12 @@ class Label(Document):
         :return:
         """
         mq = m_Q()
-        for pt, condition in VLANFilter.iter_match_vlanfilter(value):
+        for vf, condition in VLANFilter.iter_match_vlanfilter(value):
             condition = "any" if condition != "=" else "all"
             mq |= m_Q(
                 match_vlanfilter__match={
                     "scope": scope,
-                    "vlan_filter": pt.id,
+                    "vlan_filter": vf.id,
                     "condition": condition,
                 }
             )
