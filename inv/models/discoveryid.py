@@ -8,6 +8,7 @@
 # Python modules
 import operator
 from threading import Lock
+from typing import Set
 import bisect
 
 # Third-party modules
@@ -18,16 +19,18 @@ from pymongo import ReadPreference
 
 # NOC modules
 from noc.core.mongo.fields import ForeignKeyField
-from noc.sa.models.managedobject import ManagedObject
-from noc.inv.models.interface import Interface
-from noc.inv.models.subinterface import SubInterface
 from noc.core.perf import metrics
 from noc.core.cache.decorator import cachedmethod
 from noc.core.cache.base import cache
 from noc.core.mac import MAC
 from noc.core.model.decorator import on_delete
+from noc.sa.models.managedobject import ManagedObject
+from noc.inv.models.interface import Interface
+from noc.inv.models.subinterface import SubInterface
+from noc.config import config
 
 mac_lock = Lock()
+IGNORED_CHASSIS_MACS = {MAC(m) for m in config.inv.ignored_chassis_macs}
 
 
 class MACRange(EmbeddedDocument):
@@ -66,7 +69,7 @@ class DiscoveryID(Document):
         return self.object.name
 
     @staticmethod
-    def _macs_as_ints(ranges=None, additional=None):
+    def _macs_as_ints(ranges=None, additional=None, ignored_macs: Set[str] = None):
         """
         Get all MAC addresses within ranges as integers
         :param ranges: list of dicts {first_chassis_mac: ..., last_chassis_mac: ...}
@@ -75,6 +78,7 @@ class DiscoveryID(Document):
         """
         ranges = ranges or []
         additional = additional or []
+        ignored_macs = ignored_macs or set()
         # Apply ranges
         macs = set()
         for r in ranges:
@@ -82,9 +86,11 @@ class DiscoveryID(Document):
                 continue
             first = MAC(r["first_chassis_mac"])
             last = MAC(r["last_chassis_mac"])
+            if first in ignored_macs or last in ignored_macs:
+                continue
             macs.update(m for m in range(int(first), int(last) + 1))
         # Append additional macs
-        macs.update(int(MAC(m)) for m in additional)
+        macs.update(int(MAC(m)) for m in additional if MAC(m) not in ignored_macs)
         return sorted(macs)
 
     @staticmethod
@@ -107,7 +113,7 @@ class DiscoveryID(Document):
     @classmethod
     def submit(cls, object, chassis_mac=None, hostname=None, router_id=None, additional_macs=None):
         # Process ranges
-        macs = cls._macs_as_ints(chassis_mac, additional_macs)
+        macs = cls._macs_as_ints(chassis_mac, additional_macs, ignored_macs=IGNORED_CHASSIS_MACS)
         ranges = cls._macs_to_ranges(macs)
         # Update database
         o = cls.objects.filter(object=object.id).first()
