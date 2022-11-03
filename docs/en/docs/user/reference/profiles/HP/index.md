@@ -10,6 +10,7 @@ network equipment.
 
 - [HP.1905](HP.1905.md)
 - [HP.1910](HP.1910.md)
+- [HP.Aruba](HP.Aruba.md)
 - [HP.Comware](HP.Comware.md)
 - [HP.GbE2](HP.GbE2.md)
 - [HP.ProCurve](HP.ProCurve.md)
