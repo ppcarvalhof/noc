@@ -79,7 +79,7 @@ from noc.core.model.fields import (
     PydanticField,
 )
 from noc.core.model.sql import SQL
-from noc.core.stencil import stencil_registry
+from noc.core.stencil import stencil_registry, Stencil
 from noc.core.validators import is_ipv4, is_ipv4_prefix
 from noc.core.ip import IP
 from noc.sa.interfaces.base import MACAddressParameter
@@ -3017,6 +3017,15 @@ class ManagedObject(NOCModel):
         sensor = Sensor.objects.filter(m_Q(managed_object=self.id) | m_Q(object__in=o)).first()
         config = self.get_metric_config(self)
         return bool(sla_probe or sensor or config.get("metrics") or config.get("items"))
+
+    def get_stencil(self) -> Optional[Stencil]:
+        if self.shape:
+            # Use mo's shape, if set
+            return stencil_registry.get(self.shape)
+        if self.object_profile.shape:
+            # Use profile's shape
+            return stencil_registry.get(self.object_profile.shape)
+        return
 
 
 @on_save
